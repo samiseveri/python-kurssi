@@ -19,8 +19,10 @@ while True:
         lista.append(luku)
     if luku == kultakolikko:
         break
+    if luku == pommi:
+        break
     if luku %100 == 0:
-        print ("olent löytänyt pyören numeron, pikku jee :3")
+        print ("olent löytänyt pyöreän numeron, pikku jee :3")
         print ("ota tästä säälipiste")
         pisteet += 1
         time.sleep(3.0)
@@ -33,15 +35,20 @@ while True:
 märä = len(lista)
 vast = 1000 - märä
 if luku ==kultakolikko:
+    print("")
     print(f"OSUIT Numeroon {kultakolikko}")
     print("Olet löytänyt Kultakolikon! Pelastuit!")
     print(f"Etsit kaukaa kolikkoa kävit {märä} eri numeroa läpi ennen kolikkoa")
     print(f"pistetiä sait {pisteet}")
+    print("")
 elif luku == pommi:
+    print("")
     print ("RÄJÄHDIT")
     print (f"{vast} numeroa jäi käymättä läpi")
     print(f"pistetiä sait {pisteet}. En tiedä mitä pisteillä teet koska RÄJÄHDIT, muttä tässä ole hyvä...")
+    print("")
 else:
+    print("")
     print (f"Olet käynyt kaikki muut numerot läpi paitsi pommin({pommi}) ja kultakolikon({kultakolikko}).")
     print ("Olet matemaattinen mahdottomuus.... lahjakis saat tämän tähden")
     print ("""

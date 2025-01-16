@@ -10,9 +10,6 @@ pisteet = 0
 
 
 #nimi osuus
-print("")
-print("")
-
 
 pelaajan_nimi = input("Pelaajan nimi: ")
 nimi = sorted(pelaajan_nimi.lower())

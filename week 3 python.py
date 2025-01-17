@@ -10,7 +10,9 @@ pisteet = 0
 
 
 #nimi osuus
-
+print("")
+print("")
+print("")
 pelaajan_nimi = input("Pelaajan nimi: ")
 nimi = sorted(pelaajan_nimi.lower())
 
@@ -113,7 +115,7 @@ oOO          /       _-     -_       \          OOo
     
 #pisteiden lisäys
 print("")
-pisteen_lisäys = input("Haluatko lisätä pisteitä, niinkuin joku luuseri? y/n")
+pisteen_lisäys = input("Haluatko lisätä pisteitä, niinkuin joku luuseri? y = kyllä /n = ei/3k = kolmen kerroin lisäys /r = random lisäys 1-6 /k = kivi, sakset ja paperi ")
 if pisteen_lisäys == "y":
     piste_lisäys_määrä = int(input("No paljonko lisätään pisteitä.... luuseri"))
     pisteet += piste_lisäys_määrä
@@ -129,8 +131,66 @@ if pisteen_lisäys == "n":
     print(f"Kunnialliset pisteesi on {pisteet}. Voit olla ylpe OIKEISTA pisteistäsi")
     print("")
     print("")
+if pisteen_lisäys == "3k":
+    korroin_määrä = int(input("montako kertaa kolme haluat että lisätään pisteitä?.... Luuseri"))
+    valmis_kerroin = korroin_määrä*3
+    pisteet += valmis_kerroin
+    time.sleep(1.0)
+    print(f"pistetiä lisätään {valmis_kerroin}")
+    time.sleep(1.0)
+    print(f"pisteet on lisätty, pisteitä on {pisteet}")
+    time.sleep(2.0)
+    print("nyt peli loppuu, koska oot tyhmä ja huijasit lisäämällä pisteitä >:(")
+    print("")
+    print("")
+if pisteen_lisäys == "r":
+    print("annetaan satunnainen märä pisteitä 1 ja 6 väliltä")
+    piste_random_kerroin = random.randrange(1, 7)
+    time.sleep(1.0)
+    print(f"Pistetä lisätään {piste_random_kerroin}")
+    pisteet += piste_random_kerroin
+    print(f"pisteet on lisätty, pisteitä on {pisteet}")
+    time.sleep(2.0)
+    print("nyt peli loppuu, koska oot tyhmä ja huijasit lisäämällä pisteitä >:(")
+    print("")
+    print("")
 
+if pisteen_lisäys == "k":
+    options = ["kivi", "paperi", "sakset"]
+    p_pisteet = 0
+    pc_pisteet = 0
 
+    while p_pisteet != 3 or pc_pisteet != 3:
+        time.sleep(2.0)
+        print(f"tilanne on tietokone: {pc_pisteet} ja pelaajan pisteet {p_pisteet}")
+        user_choice = input("valitse kivi, sakset vai paperi: ")
+        computer_choice = random.choice(options)
+        print("pelasit: ", user_choice)
+        time.sleep(1.5)
+        print("tietokone valitsi: ", computer_choice)
+        time.sleep(1.0)
+    
+        if user_choice == computer_choice:
+            print("tasapeli")
+
+        elif user_choice == "kivi" and computer_choice == "sakset":
+            print("voitit")
+            p_pisteet += 1
+
+        elif user_choice == "paperi" and computer_choice == "kivi":
+            print("voitit")
+            p_pisteet += 1
+
+        elif user_choice == "sakset" and computer_choice == "paperi":
+            print("voitit")
+            p_pisteet += 1
+        else:
+            print("hävisit")
+            pc_pisteet += 1
+    if pc_pisteet == 3:
+        print("sinä hävisit")
+    if p_pisteet == 3:
+        print("sinä voitit")
 
 
 

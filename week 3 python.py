@@ -155,7 +155,66 @@ if pisteen_lisäys == "r":
     print("")
     print("")
 
+
+
+
 if pisteen_lisäys == "k":
+    def get_user_choice():
+        return input("Valitse kivi, sakset vai paperi: ").lower()
+
+def get_computer_choice(options):
+    return random.choice(options)
+
+def determine_round_winner(user_choice, computer_choice):
+    if user_choice == computer_choice:
+        return "tie"
+    elif (user_choice == "kivi" and computer_choice == "sakset") or \
+         (user_choice == "paperi" and computer_choice == "kivi") or \
+         (user_choice == "sakset" and computer_choice == "paperi"):
+        return "user"
+    else:
+        return "computer"
+
+def play_rock_paper_scissors():
+    options = ["kivi", "paperi", "sakset"]
+    p_pisteet, pc_pisteet = 0, 0
+
+    while p_pisteet < 3 and pc_pisteet < 3:
+        time.sleep(2.0)
+        print(f"Tilanne on tietokone: {pc_pisteet} ja pelaajan pisteet: {p_pisteet}")
+        
+        user_choice = get_user_choice()
+        if user_choice not in options:
+            print("Virheellinen valinta. Yritä uudelleen.")
+            continue
+
+        computer_choice = get_computer_choice(options)
+        print("Pelasit: ", user_choice)
+        time.sleep(1.5)
+        print("Tietokone valitsi: ", computer_choice)
+        time.sleep(1.0)
+
+        winner = determine_round_winner(user_choice, computer_choice)
+
+        if winner == "tie":
+            print("Tasapeli")
+        elif winner == "user":
+            print("Voitit")
+            p_pisteet += 1
+        else:
+            print("Hävisit")
+            pc_pisteet += 1
+
+    if pc_pisteet == 3:
+        print("Sinä hävisit")
+    elif p_pisteet == 3:
+        print("Sinä voitit")
+
+if __name__ == "__main__":
+    play_rock_paper_scissors()
+
+
+    """"
     options = ["kivi", "paperi", "sakset"]
     p_pisteet = 0
     pc_pisteet = 0
@@ -192,5 +251,5 @@ if pisteen_lisäys == "k":
     if p_pisteet == 3:
         print("sinä voitit")
 
-
+"""
 

@@ -34,6 +34,24 @@ class Kaverit:
             return 0  # Handles invalid score formatting
 
 
+def add_new_friend(kamu_list):
+    """Function to add a new friend by asking user for details."""
+    add_more = input("Would you like to add a new friend? (yes/no): ").strip().lower()
+    while add_more == "yes":
+        name = input("Enter the name: ").strip()
+        age = int(input("Enter the age: ").strip())
+        tuntenut = int(input("Enter how many years you've known them: ").strip())
+        score = input("Enter the friendship score (e.g., '4/10'): ").strip()
+        sukupuoli = input("Enter their sexuality/personality trait: ").strip()
+        lemmikki_status = input("Enter their pet status/quirk: ").strip()
+
+        new_friend = Kaverit(name, age, tuntenut, score, sukupuoli, lemmikki_status)
+        kamu_list.append(new_friend)
+        print(f"\nNew friend {new_friend.get_name()} added successfully!\n")
+
+        add_more = input("Would you like to add another friend? (yes/no): ").strip().lower()
+
+
 # Creating objects
 kamu_list = [
     Kaverit("Tommi", 21, 8, "4/10", "ERITTÄIN miesläheinen", "Perkeleen kissa"),
@@ -54,6 +72,8 @@ kamu_list = [
 print("All Friends:")
 for kamu in kamu_list:
     print(kamu)
+
+add_new_friend(kamu_list)
 
 print("\nComparing Scores:")
 print(kamu_list[0].compare_score(kamu_list[1]))

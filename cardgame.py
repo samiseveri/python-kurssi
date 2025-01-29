@@ -143,3 +143,6 @@ if __name__ == "__main__":
     num_computers = 2
     game = TexasHoldemGame(human_name, starting_chips, num_computers)
     game.play_game()
+
+
+# all in ei toimi, jos pelaajan panokset loppuu niin peli menee rikki

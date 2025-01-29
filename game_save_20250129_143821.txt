@@ -1,0 +1,8 @@
+
+Player: sami
+Final Score: 45
+Coins: 45
+Properties Owned: 0
+Movies Collected: 1
+Date: 2025-01-29 14:38:21
+        

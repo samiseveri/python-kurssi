@@ -32,6 +32,19 @@ def rearrange_kamu_list(criteria):
     print(f"List rearranged by {criteria}.")
     show_kamu_list()
 
+def edit_kaveri(name):
+    global kamu_list
+    for kaveri in kamu_list:
+        if kaveri.get_name().lower() == name.lower():
+            kaveri.age = int(input("Enter new age: "))
+            kaveri.friendship_level = input("Enter new friendship level (e.g., '4/10'): ")
+            kaveri.interests = input("Enter new interests: ")
+            kaveri.nemesis = input("Enter new pet status: ")
+            print(f"{name} has been updated.")
+            show_kamu_list()
+            return
+    print(f"{name} not found in the list.")
+
 kamu_list = [
     Kaverit("Tommi", 21, "4/10", "ERITTÄIN miesläheinen", "Perkeleen kissa"),
     Kaverit("Iippu", 21, "0.006/10", "miesläheinen", "Tommi"),
@@ -68,7 +81,7 @@ def add_kaveri():
 while True:
     print("Current list:")
     show_kamu_list()
-    action = input("Enter 'remove' to delete a friend, 'add' to add a new friend, 'rearrange' to sort the list, or 'exit' to quit: ").strip().lower()
+    action = input("Enter 'remove' to delete a friend, 'add' to add a new friend, 'rearrange' to sort the list, 'edit' to modify a friend, or 'exit' to quit: ").strip().lower()
     if action == 'remove':
         user_input = input("Enter the name of the friend to remove: ")
         remove_kaveri(user_input)
@@ -77,10 +90,13 @@ while True:
     elif action == 'rearrange':
         criteria = input("Enter sorting criteria ('name', 'age', 'friendship_level'): ").strip().lower()
         rearrange_kamu_list(criteria)
+    elif action == 'edit':
+        user_input = input("Enter the name of the friend to edit: ")
+        edit_kaveri(user_input)
     elif action == 'exit':
         break
     else:
-        print("Invalid input. Please enter 'remove', 'add', 'rearrange', or 'exit'.")
+        print("Invalid input. Please enter 'remove', 'add', 'rearrange', 'edit', or 'exit'.")
 
 print("Final list:")
 show_kamu_list()

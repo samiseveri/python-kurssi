@@ -242,16 +242,3 @@ if __name__ == "__main__":
     game = GameManager()
     game.play()
 
-
-# Save the gamified version to a file
-with open('ultimate_minigames.py', 'w') as f:
-    f.write(code)
-
-print("Gamified version saved as ultimate_minigames.py. Features include:")
-print("- Player profile with score and coin system")
-print("- Coin flip gambling mini-game")
-print("- Movie collection trading")
-print("- Property management with passive income")
-print("- Save game functionality")
-print("- Interactive menus with emoji graphics")
-print("\Run it with: python ultimate_minigames.py")

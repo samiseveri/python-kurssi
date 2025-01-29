@@ -1,84 +1,86 @@
 class Kaverit:
-    species = "Canine"  # Class attribute (you can change this if needed!)
+    def __init__(self, name, age, friendship_level, interests, nemesis):
+        self.__name = name  # Private attribute
+        self.age = age
+        self.friendship_level = friendship_level
+        self.interests = interests
+        self.nemesis = nemesis
 
-    def __init__(self, name, age, tuntenut, score, sukupuoli, lemmikki_status):
-        self.__name = name  # Private instance attribute
-        self.age = age  # Instance attribute
-        self.tuntenut = tuntenut  # How long they've known each other
-        self.score = score  # Friendship score
-        self.sukupuoli = sukupuoli  # Personality trait or gender attribute
-        self.lemmikki_status = lemmikki_status  # Pet status or unique quirk
-
-    def __str__(self):
-        return (f"{self.__name}, {self.age} years old, "
-                f"Known for {self.tuntenut} years, "
-                f"Score: {self.score}, Sexuality: {self.sukupuoli}, "
-                f"Lemmikki: {self.lemmikki_status}")
+    def __repr__(self):
+        return f"Kaverit({self.__name}, {self.age}, {self.friendship_level}, {self.interests}, {self.nemesis})"
 
     def get_name(self):
-        """Getter for the private name attribute."""
         return self.__name
 
-    def compare_score(self, other):
-        """Compares the friendship score with another Kaverit."""
-        if isinstance(other, Kaverit):
-            return f"{self.__name} and {other.get_name()}: {self.score} vs {other.score}"
-        return "Comparison failed: other is not a Kaverit."
+def show_kamu_list():
+    print("Current Friends List:")
+    for kaveri in kamu_list:
+        print(kaveri)
+    print("\n")
 
-    def get_friendship_strength(self):
-        """Calculates a simple friendship strength metric."""
-        try:
-            numeric_score = float(self.score.split('/')[0])
-            return numeric_score * self.tuntenut
-        except ValueError:
-            return 0  # Handles invalid score formatting
+def rearrange_kamu_list(criteria):
+    global kamu_list
+    if criteria == "name":
+        kamu_list.sort(key=lambda k: k.get_name().lower())
+    elif criteria == "age":
+        kamu_list.sort(key=lambda k: k.age)
+    elif criteria == "friendship_level":
+        kamu_list.sort(key=lambda k: float(k.friendship_level.split('/')[0]))
+    else:
+        print("Invalid criteria. Choose from 'name', 'age', or 'friendship_level'.")
+    
+    print(f"List rearranged by {criteria}.")
+    show_kamu_list()
 
-
-def add_new_friend(kamu_list):
-    """Function to add a new friend by asking user for details."""
-    add_more = input("Would you like to add a new friend? (yes/no): ").strip().lower()
-    while add_more == "yes":
-        name = input("Enter the name: ").strip()
-        age = int(input("Enter the age: ").strip())
-        tuntenut = int(input("Enter how many years you've known them: ").strip())
-        score = input("Enter the friendship score (e.g., '4/10'): ").strip()
-        sukupuoli = input("Enter their sexuality/personality trait: ").strip()
-        lemmikki_status = input("Enter their pet status/quirk: ").strip()
-
-        new_friend = Kaverit(name, age, tuntenut, score, sukupuoli, lemmikki_status)
-        kamu_list.append(new_friend)
-        print(f"\nNew friend {new_friend.get_name()} added successfully!\n")
-
-        add_more = input("Would you like to add another friend? (yes/no): ").strip().lower()
-
-
-# Creating objects
 kamu_list = [
-    Kaverit("Tommi", 21, 8, "4/10", "ERITTÄIN miesläheinen", "Perkeleen kissa"),
-    Kaverit("Iippu", 21, 13, "0.006/10", "miesläheinen", "Tommi"),
-    Kaverit("Veeti", 21, 5, "2/10", "nylkyttää switch 2", "yläkerran muhamed"),
-    Kaverit("Merppa", 21, 6, "1.5/10", "intternet femboys", "Intternet femboy"),
-    Kaverit("Danu", 22, 10, "3.5/10", "auton pakoputki", "dogi"),
-    Kaverit("Urtturi", 22, 6, "3/10", "homo", "Eetu"),
-    Kaverit("Eetu", 21, 6, "1/10", "subwayn patonki", "Subwayn henkilökunta"),
-    Kaverit("Leevi", 22, 6, "1.5/10", "ies", "joku katti"),
-    Kaverit("Allu", 21, 6, "1/10", "PC", "Leevi"),
-    Kaverit("Minna", 36, 1, "2/10", "mummo", "plösö kissa"),
-    Kaverit("Erika", 21, 7, "0/10", "hullut", "Jenni"),
-    Kaverit("Puksu", 21, 10, "3/10", "milfs", "milf")
+    Kaverit("Tommi", 21, "4/10", "ERITTÄIN miesläheinen", "Perkeleen kissa"),
+    Kaverit("Iippu", 21, "0.006/10", "miesläheinen", "Tommi"),
+    Kaverit("Veeti", 21, "2/10", "nylkyttää switch 2", "yläkerran muhamed"),
+    Kaverit("Merppa", 21, "1.5/10", "intternet femboys", "Intternet femboy"),
+    Kaverit("Danu", 22, "3.5/10", "auton pakoputki", "dogi"),
+    Kaverit("Urtturi", 22, "3/10", "homo", "Eetu"),
+    Kaverit("Eetu", 21, "1/10", "subwayn patonki", "Subwayn henkilökunta"),
+    Kaverit("Leevi", 22, "1.5/10", "ies", "joku katti"),
+    Kaverit("Allu", 21, "1/10", "PC", "Leevi"),
+    Kaverit("Minna", 36, "2/10", "mummo", "plösö kissa"),
+    Kaverit("Erika", 21, "0/10", "hullut", "Jenni"),
+    Kaverit("Puksu", 21, "3/10", "milfs", "milf")
 ]
 
+def remove_kaveri(name):
+    global kamu_list
+    kamu_list = [kaveri for kaveri in kamu_list if kaveri.get_name().lower() != name.lower()]
+    print(f"{name} has been removed from the list.")
+    show_kamu_list()
+
+def add_kaveri():
+    name = input("Enter name: ")
+    age = int(input("Enter age: "))
+    rating = input("Enter rating (e.g., '4/10'): ")
+    interests = input("Enter interests: ")
+    nemesis = input("Enter pet status: ")
+    new_kaveri = Kaverit(name, age, rating, interests, nemesis)
+    kamu_list.append(new_kaveri)
+    print(f"{name} has been added to the list.")
+    show_kamu_list()
+
 # Example usage
-print("All Friends:")
-for kamu in kamu_list:
-    print(kamu)
+while True:
+    print("Current list:")
+    show_kamu_list()
+    action = input("Enter 'remove' to delete a friend, 'add' to add a new friend, 'rearrange' to sort the list, or 'exit' to quit: ").strip().lower()
+    if action == 'remove':
+        user_input = input("Enter the name of the friend to remove: ")
+        remove_kaveri(user_input)
+    elif action == 'add':
+        add_kaveri()
+    elif action == 'rearrange':
+        criteria = input("Enter sorting criteria ('name', 'age', 'friendship_level'): ").strip().lower()
+        rearrange_kamu_list(criteria)
+    elif action == 'exit':
+        break
+    else:
+        print("Invalid input. Please enter 'remove', 'add', 'rearrange', or 'exit'.")
 
-add_new_friend(kamu_list)
-
-print("\nComparing Scores:")
-print(kamu_list[0].compare_score(kamu_list[1]))
-
-print("\nFriendship Strength Rankings:")
-sorted_kamu = sorted(kamu_list, key=lambda x: x.get_friendship_strength(), reverse=True)
-for idx, kamu in enumerate(sorted_kamu, 1):
-    print(f"{idx}. {kamu.get_name()} - Strength: {kamu.get_friendship_strength()}")
+print("Final list:")
+show_kamu_list()

@@ -2,7 +2,6 @@
 from item import Item
 from character import Character
 from backpack import Backpack
-from tools import Tools
 
 
 class StoneAge:

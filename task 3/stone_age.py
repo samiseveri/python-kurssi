@@ -12,12 +12,16 @@ class StoneAge:
         Copyright: Sami Pyöttilä, 2006
     """
 
-
     
+
+
+
     @staticmethod
     def main():
         StoneAge.test_items_and_characters()
-
+        StoneAge.shop()
+  
+    
     @staticmethod
     def test_items_and_characters():
         stone = Item("small stone", 0.0, 2.0, 5.0, 10000.0)
@@ -26,6 +30,8 @@ class StoneAge:
         print(small_axe)
         print(stone)
         
+        
+
         leather_backpack = Backpack(100.0)
         print(leather_backpack)
         print(leather_backpack.is_empty())
@@ -36,14 +42,40 @@ class StoneAge:
         print(leather_backpack.__str__())
         print(leather_backpack.is_empty())
 
+        
 
 
+    @staticmethod
+    def shop():
+        shop_keeper = Character("Bob", 10.0, 50.0, 10000.0, 9999999999)
+        player = Character("Chris", 30.0, 20.0, 100.0, 200)
 
+        sword = Item("sword", 30.0, 3.0, 8.0, 60)
+        shield = Item("shild", 20.0, 4.0, 1.0, 100.0)
 
+        leather_backpakc = Backpack(100.0)        
+        player.set_backpack(leather_backpakc)
 
+        print("\n\n\n")
+        print("Welcome to the shop!")
+        to_the_shop = input(f"I have things to sell. I have a {sword} and a {shield}. woudl you like to by or sell someting? sell/by: ")
+        if to_the_shop == "by":
+            mita_ostaa = input("What will you by? sword or a shiel? ")
+            if mita_ostaa == "sword":
+               print(f"You have bought {sword}")
+               player.get_backpack().put(sword)
+                
+            if mita_ostaa == "shield":
+                print(f"You have bought {shield}")
+                player.get_backpack().put(shield)
+            
+
+        if to_the_shop == "sell":
+            print("what woud you like to sell?")
+            #the action of selling things
 
  
-        
+        """
         conan = Character("Conan", 20.0, 30.0, 15.0)
         jay = Character("Jay", 30.0, 20.0, 17.0)
 
@@ -51,7 +83,7 @@ class StoneAge:
         leather_backpack.put(stone)
         print(conan)
 
-        """
+        
         print(conan)
         print(jay)
        

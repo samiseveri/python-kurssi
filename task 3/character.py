@@ -5,7 +5,7 @@ class Character:
         Copyright: Sami Pyöttilä, 2006
     """
 
-    def __init__(self, name, strength, skill, max_health):
+    def __init__(self, name, strength, skill, max_health, money):
         """ Initializes a new character with empty hands and no backpack.
 
             Arguments:
@@ -23,13 +23,21 @@ class Character:
         self.__skill = skill
         self.__max_health = max_health
         self.__health = max_health
+        self.__money = money
 
         self.__left_hand = None
         self.__right_hand = None
-        self.__backpack = None ###
+        self.__backpack = None 
 
 
     # Observation
+    def money_sitsuation(self):
+        return self.__money 
+    
+
+    def get_backpack(self):
+        return self.__backpack
+
 
     def is_alive(self):
         """ Is the character alive? """
@@ -66,7 +74,7 @@ class Character:
     def __str__(self):
         """ Returns a string representation of the character. """
         class_name = self.__class__.__name__
-        character_info = f"{class_name}: [{self.__name} {self.__strength} {self.__skill} ({self.__health} / {self.__max_health})]"
+        character_info = f"{class_name}: [{self.__name} {self.__strength} {self.__skill} ({self.__health} / {self.__max_health} / {self.__money})]"
 
         indent = " " * (len(character_info) // 4)
         character_info += f"\n{indent}right: {self.__right_hand}"

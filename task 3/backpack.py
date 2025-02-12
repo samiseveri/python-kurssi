@@ -109,7 +109,7 @@ class Backpack:
 
     def put(self, item):
         """
-        Puts the item in the backpack. The item goes on top.
+        Puts the item in the backpack. The item are added on top.
 
         Preconditions: (item is not None) and item.get_volume() <= self.get_remaining_capacity() and not self.contains(item)
         """

@@ -1,0 +1,106 @@
+# 1. Explanation of OOP concepts
+print('--- OOP Concept Explanations ---')
+
+encapsulation = "Encapsulation is the bundling of data and methods that operate on that data within a single unit, or class. It restricts direct access to some of an object's components, which can prevent the accidental modification of data."
+client = "In object-oriented programming, a client is any code that uses the services of a class through its public methods and attributes without needing to understand its internal workings."
+data_attributes = "Data attributes are variables that hold data specific to a class, representing the state or properties of an object."
+instance = "An instance is a specific realization of a class. It is created when the class is instantiated, allocating memory for its attributes."
+
+print('Encapsulation:', encapsulation)
+print('Client:', client)
+print('Data Attributes:', data_attributes)
+print('Instance:', instance)
+
+
+# 2. Methods to count numbers, calculate sum and mean
+print('\
+--- Number Calculations ---')
+
+def count_numbers(numbers):
+    return len(numbers)
+
+
+def calculate_sum(numbers):
+    return sum(numbers)
+
+
+def calculate_mean(numbers):
+    if len(numbers) == 0:
+        return 0
+    return sum(numbers) / len(numbers)
+
+# Predefined list of numbers for demonstration
+number_list = [10, 20, 30, 40, 50]
+
+# Calculate results
+count = count_numbers(number_list)
+total_sum = calculate_sum(number_list)
+mean = calculate_mean(number_list)
+
+print('Count of numbers:', count)
+print('Sum of numbers:', total_sum)
+print('Mean of numbers:', mean)
+
+
+# 3. fastest_car function with Car class
+print('\
+--- Fastest Car Identification ---')
+
+class Car:
+    def __init__(self, make, speed):
+        self.make = make
+        self.speed = speed
+
+
+def fastest_car(cars):
+    if not cars:
+        return None
+    fastest = max(cars, key=lambda car: car.speed)
+    return fastest.make
+
+# Example usage with a list of Car objects
+car_list = [
+    Car('Toyota', 120),
+    Car('Ford', 150),
+    Car('BMW', 140)
+]
+
+fastest_make = fastest_car(car_list)
+print('The fastest car is:', fastest_make)
+
+
+# 4. LunchCard class to simulate a cafeteria debit card
+print('\
+--- LunchCard Simulation ---')
+
+class LunchCard:
+    def __init__(self, balance=0):
+        self.balance = balance
+
+    def deposit(self, amount):
+        if amount > 0:
+            self.balance += amount
+            print('Deposited: $' + str(amount) + '. New balance: $' + str(self.balance) + '.')
+        else:
+            print('Deposit amount must be positive.')
+
+    def subtract(self, amount):
+        if 0 < amount <= self.balance:
+            self.balance -= amount
+            print('Subtracted: $' + str(amount) + '. New balance: $' + str(self.balance) + '.')
+        else:
+            print('Insufficient balance or invalid amount.')
+
+    def print_balance(self):
+        print('Current balance: $' + str(self.balance) + '.')
+
+# Example usage of LunchCard
+lunch_card = LunchCard()
+lunch_card.deposit(50)
+lunch_card.subtract(20)
+lunch_card.print_balance()
+
+print('\
+--- End of Combined Code ---')
+
+print('done')

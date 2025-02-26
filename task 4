@@ -119,3 +119,200 @@ lunch_card.deposit(50)
 lunch_card.subtract(20)
 lunch_card.print_balance()
 
+class LunchCard:
+    def __init__(self, balance=0):
+        self.balance = balance
+    
+    def deposit(self, amount):
+        if amount > 0:
+            self.balance += amount
+            print(f'Deposited: ${amount}. New balance: ${self.balance}.')
+        else:
+            print('Deposit amount must be positive.')
+    
+    def subtract_from_balance(self, amount):
+        if 0 < amount <= self.balance:
+            self.balance -= amount
+            print(f'Subtracted: ${amount}. New balance: ${self.balance}.')
+        else:
+            print('Insufficient balance or invalid amount.')
+    
+    def print_balance(self):
+        print(f'Current balance: ${self.balance}.')
+
+
+class PaymentTerminal:
+    def __init__(self):
+        self.cash_balance = 1000  # Initial cash in terminal
+        self.meal_price = 10
+        self.economical_meal_price = 7
+        self.lunches_sold = 0
+
+    def pay_cash(self, amount, meal_type):
+        meal_price = self.meal_price if meal_type == 'regular' else self.economical_meal_price
+        if amount >= meal_price:
+            self.cash_balance += meal_price
+            self.lunches_sold += 1
+            return amount - meal_price
+        return amount  # No meal sold
+
+    def pay_card(self, card: LunchCard, meal_type):
+        meal_price = self.meal_price if meal_type == 'regular' else self.economical_meal_price
+        if card.balance >= meal_price:
+            card.subtract_from_balance(meal_price)
+            self.lunches_sold += 1
+            return True
+        return False
+    
+    def deposit_on_card(self, card: LunchCard, amount):
+        if amount > 0:
+            card.deposit(amount)
+            self.cash_balance += amount
+
+
+# Box of Presents
+class Present:
+    def __init__(self, name, weight):
+        self.name = name
+        self.weight = weight
+
+    def __str__(self):
+        return f'{self.name} ({self.weight}g)'
+
+
+class Box:
+    def __init__(self):
+        self.presents = []
+    
+    def add_present(self, present: Present):
+        self.presents.append(present)
+    
+    def total_weight(self):
+        return sum(present.weight for present in self.presents)
+
+
+# Room with shortest person
+class Person:
+    def __init__(self, name, height):
+        self.name = name
+        self.height = height
+    
+    def __str__(self):
+        return f'{self.name} ({self.height} cm)'
+
+
+class Room:
+    def __init__(self):
+        self.people = []
+
+    def add(self, person: Person):
+        self.people.append(person)
+
+    def is_empty(self):
+        return len(self.people) == 0
+
+    def print_contents(self):
+        print(f'There are {len(self.people)} persons in the room, and their combined height is {sum(p.height for p in self.people)} cm.')
+        for person in self.people:
+            print(person)
+
+    def shortest(self):
+        return min(self.people, key=lambda p: p.height, default=None)
+    
+    def remove_shortest(self):
+        shortest_person = self.shortest()
+        if shortest_person:
+            self.people.remove(shortest_person)
+        return shortest_person
+
+
+# Recording class
+class Recording:
+    def __init__(self, length: int):
+        self.__length = length
+    
+    @property
+    def length(self):
+        return self.__length
+    
+    @length.setter
+    def length(self, new_length):
+        self.__length = new_length
+
+
+# Weather Station
+class WeatherStation:
+    def __init__(self, name):
+        self.__name = name
+        self.__observations = []
+    
+    def add_observation(self, observation: str):
+        self.__observations.append(observation)
+    
+    def latest_observation(self):
+        return self.__observations[-1] if self.__observations else ''
+    
+    def number_of_observations(self):
+        return len(self.__observations)
+    
+    def __str__(self):
+        return f'{self.__name}, {len(self.__observations)} observations'
+
+
+# BankAccount with Service Charge
+class BankAccount:
+    def __init__(self, owner, account_number, balance):
+        self.__owner = owner
+        self.__account_number = account_number
+        self.__balance = balance
+    
+    def deposit(self, amount):
+        self.__balance += amount
+        self.__service_charge()
+    
+    def withdraw(self, amount):
+        if self.__balance >= amount:
+            self.__balance -= amount
+            self.__service_charge()
+    
+    @property
+    def balance(self):
+        return self.__balance
+    
+    def __service_charge(self):
+        self.__balance *= 0.99  # Deduct 1%
+
+
+# Testing
+if __name__ == "__main__":
+    # LunchCard
+    card = LunchCard(50)
+    terminal = PaymentTerminal()
+    terminal.pay_card(card, 'regular')
+    card.print_balance()
+    
+    # Box
+    book = Present("The Water Dancer", 200)
+    box = Box()
+    box.add_present(book)
+    print(box.total_weight())
+    
+    # Room
+    room = Room()
+    room.add(Person("Lea", 183))
+    room.add(Person("Nina", 162))
+    print("Shortest:", room.shortest())
+    
+    # Recording
+    the_wall = Recording(43)
+    print(the_wall.length)
+    
+    # Weather Station
+    station = WeatherStation("Houston")
+    station.add_observation("Sunny")
+    print(station.latest_observation())
+    
+    # BankAccount
+    account = BankAccount("Randy Riches", "12345-6789", 1000)
+    account.withdraw(100)
+    print(account.balance)

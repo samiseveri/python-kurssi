@@ -42,9 +42,7 @@ print('Sum of numbers:', total_sum)
 print('Mean of numbers:', mean)
 
 
-# 3. fastest_car function with Car class
-print('\
---- Fastest Car Identification ---')
+
 
 inut_list = []
 
@@ -53,12 +51,19 @@ current_num = int(input("give number: "))
 while current_num != -1:
     current_num = int(input("give number: "))
     inut_list.append(current_num)
-    
+
+
+
+
 total_sum_2 = calculate_sum(inut_list)
 print(total_sum_2)
 
 mean_2 = calculate_mean(inut_list)
 print(mean_2)
+
+# 3. fastest_car function with Car class
+print('\
+--- Fastest Car Identification ---')
 
 class Car:
     def __init__(self, make, speed):
@@ -114,7 +119,3 @@ lunch_card.deposit(50)
 lunch_card.subtract(20)
 lunch_card.print_balance()
 
-print('\
---- End of Combined Code ---')
-
-print('done')

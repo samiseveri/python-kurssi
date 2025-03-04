@@ -1,0 +1,190 @@
+import random
+import time
+
+# ASCII Art Functions
+def display_attack():
+    print("\n ⚔️  *SLASH* ⚔️\n")
+    time.sleep(1.5)
+
+def display_spell():
+    print("\n 🔥 *WHOOSH* 🔥\n")
+    time.sleep(1.5)
+
+def display_heal():
+    print("\n 💖 *GLOW* 💖\n")
+    time.sleep(1.5)
+
+def display_enemy_attack():
+    print("\n 💀 *BAM* 💀\n")
+    time.sleep(1.5)
+
+def display_enemy_defeated():
+    print("\n ☠️  *Enemy has fallen!* ☠️\n")
+    time.sleep(1.5)
+
+# Base Character Class
+class Character:
+    game_world = "Fantasy Land"
+    
+    def __init__(self, name, health, attack_power):
+        self.name = name
+        self.health = health
+        self.attack_power = attack_power
+        self.level = 1
+        self.xp = 0
+        self.inventory = []
+    
+    def attack(self, other):
+        damage = random.randint(1, self.attack_power)
+        other.health -= damage
+        display_attack()
+        print(f"{self.name} attacks {other.name} for {damage} damage!")
+    
+    def is_alive(self):
+        return self.health > 0
+    
+    def gain_xp(self, amount):
+        self.xp += amount
+        if self.xp >= self.level * 10:
+            self.level_up()
+    
+    def level_up(self):
+        self.level += 1
+        self.health += 10
+        self.attack_power += 2
+        print(f"{self.name} leveled up! Now at level {self.level}!")
+    
+    def use_item(self, item):
+        if item in self.inventory:
+            print(f"{self.name} uses {item.name}!")
+            display_heal()
+            item.use(self)
+            self.inventory.remove(item)
+        else:
+            print("Item not found!")
+
+# Player Classes
+class Warrior(Character):
+    armor = 5
+    
+    def __init__(self, name):
+        super().__init__(name, health=120, attack_power=15)
+
+class Mage(Character):
+    mana = 50
+    
+    def __init__(self, name):
+        super().__init__(name, health=80, attack_power=20)
+    
+    def cast_spell(self, other):
+        if self.mana >= 10:
+            self.mana -= 10
+            spell_damage = self.attack_power + 5
+            other.health -= spell_damage
+            display_spell()
+            print(f"{self.name} casts a fireball on {other.name} for {spell_damage} damage!")
+        else:
+            print(f"{self.name} is out of mana!")
+
+class Rogue(Character):
+    critical_chance = 0.2
+    
+    def __init__(self, name):
+        super().__init__(name, health=90, attack_power=12)
+    
+    def attack(self, other):
+        if random.random() < self.critical_chance:
+            print(f"Critical hit! {self.name} deals double damage!")
+            other.health -= self.attack_power * 2
+        else:
+            super().attack(other)
+
+# New Player Classes
+class Paladin(Warrior):
+    def heal(self):
+        display_heal()
+        self.health += 20
+        print(f"{self.name} heals for 20 health!")
+
+class Archer(Character):
+    def __init__(self, name):
+        super().__init__(name, health=85, attack_power=18)
+
+class Necromancer(Mage):
+    def raise_dead(self, enemy):
+        print(f"{self.name} raises {enemy.name} as an undead minion!")
+        self.attack_power += 5
+
+# Enemy Classes
+class Enemy(Character):
+    def __init__(self, name, health, attack_power):
+        super().__init__(name, health, attack_power)
+
+class Goblin(Enemy):
+    def __init__(self):
+        super().__init__("Goblin", health=50, attack_power=8)
+
+class Dragon(Enemy):
+    def __init__(self):
+        super().__init__("Dragon", health=200, attack_power=30)
+    
+    def breath_fire(self, other):
+        print(f"{self.name} breathes fire on {other.name}!")
+        display_spell()
+        other.health -= 40
+
+class UndeadKnight(Enemy):
+    def __init__(self):
+        super().__init__("Undead Knight", health=100, attack_power=20)
+
+# Inventory System
+class Item:
+    def __init__(self, name, effect):
+        self.name = name
+        self.effect = effect
+    
+    def use(self, character):
+        if self.effect == "heal":
+            character.health += 20
+            print(f"{character.name} heals for 20 health!")
+        elif self.effect == "mana":
+            if hasattr(character, 'mana'):
+                character.mana += 15
+                print(f"{character.name} recovers 15 mana!")
+
+# Battle System
+def battle(player, enemy):
+    print(f"\nA wild {enemy.name} appears!")
+    
+    while player.is_alive() and enemy.is_alive():
+        action = input(f"\nWhat will {player.name} do? (attack/spell/item): ").lower()
+        
+        if action == "attack":
+            player.attack(enemy)
+        elif action == "spell" and isinstance(player, Mage):
+            player.cast_spell(enemy)
+        elif action == "item":
+            if player.inventory:
+                item = player.inventory[0]  # Use first item
+                player.use_item(item)
+            else:
+                print("No items in inventory!")
+        else:
+            print("Invalid action!")
+        
+        if enemy.is_alive():
+            display_enemy_attack()
+            enemy.attack(player)
+        else:
+            display_enemy_defeated()
+            print(f"{enemy.name} has been defeated!")
+            player.gain_xp(10)
+        
+        if not player.is_alive():
+            print(f"{player.name} has been defeated! Game Over.")
+
+# Example Game Setup
+player = Mage("Gandalf")
+player.inventory.append(Item("Health Potion", "heal"))
+enemy = Goblin()
+battle(player, enemy)

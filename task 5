@@ -22,6 +22,31 @@ def display_enemy_defeated():
     print("\n ☠️  *Enemy has fallen!* ☠️\n")
     time.sleep(1.5)
 
+# City Class with Class Attribute
+class City:
+    postcodes = {
+        "Helsinki": "00100",
+        "Turku": "20100",
+        "Tampere": "33100",
+        "Salo": "24100",
+        "Oulu": "90100",
+        "Jyväskylä": "40100"
+    }
+    
+    def __init__(self, name: str, population: int):
+        self.__name = name
+        self.__population = population
+
+# List Helper Class
+class ListHelper:
+    @classmethod
+    def greatest_frequency(cls, my_list):
+        return max(set(my_list), key=my_list.count)
+    
+    @classmethod
+    def doubles(cls, my_list):
+        return sum(1 for item in set(my_list) if my_list.count(item) > 1)
+
 # Base Character Class
 class Character:
     game_world = "Fantasy Land"
@@ -63,13 +88,14 @@ class Character:
         else:
             print("Item not found!")
 
-# Player Classes
+# Warrior Class
 class Warrior(Character):
     armor = 5
     
     def __init__(self, name):
         super().__init__(name, health=120, attack_power=15)
 
+# Mage Class
 class Mage(Character):
     mana = 50
     
@@ -86,58 +112,7 @@ class Mage(Character):
         else:
             print(f"{self.name} is out of mana!")
 
-class Rogue(Character):
-    critical_chance = 0.2
-    
-    def __init__(self, name):
-        super().__init__(name, health=90, attack_power=12)
-    
-    def attack(self, other):
-        if random.random() < self.critical_chance:
-            print(f"Critical hit! {self.name} deals double damage!")
-            other.health -= self.attack_power * 2
-        else:
-            super().attack(other)
-
-# New Player Classes
-class Paladin(Warrior):
-    def heal(self):
-        display_heal()
-        self.health += 20
-        print(f"{self.name} heals for 20 health!")
-
-class Archer(Character):
-    def __init__(self, name):
-        super().__init__(name, health=85, attack_power=18)
-
-class Necromancer(Mage):
-    def raise_dead(self, enemy):
-        print(f"{self.name} raises {enemy.name} as an undead minion!")
-        self.attack_power += 5
-
-# Enemy Classes
-class Enemy(Character):
-    def __init__(self, name, health, attack_power):
-        super().__init__(name, health, attack_power)
-
-class Goblin(Enemy):
-    def __init__(self):
-        super().__init__("Goblin", health=50, attack_power=8)
-
-class Dragon(Enemy):
-    def __init__(self):
-        super().__init__("Dragon", health=200, attack_power=30)
-    
-    def breath_fire(self, other):
-        print(f"{self.name} breathes fire on {other.name}!")
-        display_spell()
-        other.health -= 40
-
-class UndeadKnight(Enemy):
-    def __init__(self):
-        super().__init__("Undead Knight", health=100, attack_power=20)
-
-# Inventory System
+# Item Class
 class Item:
     def __init__(self, name, effect):
         self.name = name
@@ -152,6 +127,32 @@ class Item:
                 character.mana += 15
                 print(f"{character.name} recovers 15 mana!")
 
+# Suitcase Class
+class Suitcase:
+    def __init__(self, max_weight):
+        self.max_weight = max_weight
+        self.items = []
+    
+    def add_item(self, item):
+        total_weight = sum(i.weight for i in self.items) + item.weight
+        if total_weight <= self.max_weight:
+            self.items.append(item)
+        else:
+            print("Cannot add item. Exceeds weight limit.")
+
+# Cargo Hold Class
+class CargoHold:
+    def __init__(self, max_weight):
+        self.max_weight = max_weight
+        self.suitcases = []
+    
+    def add_suitcase(self, suitcase):
+        total_weight = sum(s.weight() for s in self.suitcases) + suitcase.weight()
+        if total_weight <= self.max_weight:
+            self.suitcases.append(suitcase)
+        else:
+            print("Cannot add suitcase. Exceeds weight limit.")
+
 # Battle System
 def battle(player, enemy):
     print(f"\nA wild {enemy.name} appears!")
@@ -165,7 +166,7 @@ def battle(player, enemy):
             player.cast_spell(enemy)
         elif action == "item":
             if player.inventory:
-                item = player.inventory[0]  # Use first item
+                item = player.inventory[0]
                 player.use_item(item)
             else:
                 print("No items in inventory!")
@@ -186,5 +187,5 @@ def battle(player, enemy):
 # Example Game Setup
 player = Mage("Gandalf")
 player.inventory.append(Item("Health Potion", "heal"))
-enemy = Goblin()
+enemy = Character("Mother Fucker", 50, 8)
 battle(player, enemy)

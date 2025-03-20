@@ -5,10 +5,10 @@ from bird import Bird
 from dog import Dog
 import time
 
-# New Tests for Encapsulation and Added Features
+#Tests basic Animal class (legs, species, sound).
 def run_a_tests():
     print("Running A Tests...")
-    time(wait)
+    time.sleep(1.0)
 
     a1 = Animal(6, "Insect")  
     a2 = Animal(4, "Cow") 
@@ -21,8 +21,10 @@ def run_a_tests():
 
 
 
+#Tests polymorphism (Mammal, Bird, Wolf).
 def run_b_tests():
     print("Running B Tests...")
+    time.sleep(1.0)
 
     a3 = Mammal("Mammal") 
     a4 = Bird()
@@ -46,8 +48,11 @@ def make_it_do_the_sound22(any_bird: Bird):
     any_bird.make_sound()
 
 
+
+#Tests Wolf class (howling, pack name).
 def run_c_tests():
     print("Running C Tests...")
+    time.sleep(1.0)
 
     wolf = Wolf("Raasinkorpi")
 
@@ -56,8 +61,11 @@ def run_c_tests():
 
 
 
+
+#Tests Bird class (singing, legs).
 def run_d_tests():
     print("Running D Tests...")
+    time.sleep(1.0)
 
     bird = Bird()
 
@@ -65,8 +73,11 @@ def run_d_tests():
     print(f"Legs: {bird.number_of_legs()}")
 
 
+
+#	Tests Dog class (barking, fetching, breed).
 def run_dog_tests():
     print("Running Dog Tests...")
+    time.sleep(1.0)
 
     dog1 = Dog("Buddy", "Golden Retriever")
     dog2 = Dog("Max", "Bulldog")

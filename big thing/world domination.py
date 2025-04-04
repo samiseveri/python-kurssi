@@ -306,9 +306,11 @@ class Game:
                             self.show_message(f"Built {build_action.name.replace('BUILD_', '').replace('_', ' ')}!")
                         else:
                             self.show_message("Cannot build now!")
+                    return  # Return after handling button click to avoid multiple actions
 
             if self.end_turn_button.is_clicked(mouse_pos, mouse_click):
                 self.end_turn()
+                return
 
         elif self.game_phase == GamePhase.CHOOSE_TARGET:
             if mouse_click and mouse_pos[0] < self.map_width:
@@ -334,7 +336,7 @@ class Game:
                                 self.game_phase = GamePhase.CHOOSE_ACTION
                             else:
                                 self.show_message("Cannot attack now!")
-                            break
+                            return  # Return after handling attack
 
     def cpu_turn(self):
         current_city = self.cities[self.current_turn % len(self.cities)]
@@ -375,7 +377,8 @@ class Game:
 
     def end_turn(self):
         # Reset current city's turn
-        self.cities[self.current_turn % len(self.cities)].reset_turn()
+        current_city = self.cities[self.current_turn % len(self.cities)]
+        current_city.reset_turn()
         self.selected_action = None
 
         # Find next active city
@@ -384,9 +387,9 @@ class Game:
             # Shouldn't happen as game should end before all cities are dead
             self.current_turn += 1
         else:
-            # Skip dead cities by moving to next active one
+            # Check if we've wrapped around (completed a full cycle)
             if next_index <= self.current_turn:
-                # We've wrapped around, check for game over
+                # Check for game over conditions
                 remaining_players = sum(1 for city in self.cities if city.is_player and city.health > 0)
                 remaining_enemies = sum(1 for city in self.cities if not city.is_player and city.health > 0)
 
@@ -401,6 +404,7 @@ class Game:
 
             self.current_turn = next_index
 
+        # Always reset to CHOOSE_ACTION phase at end of turn
         self.game_phase = GamePhase.CHOOSE_ACTION
 
     def run(self):
@@ -417,11 +421,12 @@ class Game:
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     mouse_click = True
 
-            current_city = self.cities[self.current_turn % len(self.cities)]
-
             if self.message_timer > 0:
                 self.message_timer -= 1
 
+            current_city = self.cities[self.current_turn % len(self.cities)]
+
+            # Only process turns for living cities
             if current_city.health > 0:
                 if current_city.is_player and self.game_phase != GamePhase.GAME_OVER:
                     self.handle_player_turn(mouse_pos, mouse_click)

@@ -2,7 +2,11 @@ import pygame
 import sys
 import random
 import math
+import os
 from enum import Enum
+
+# Initialize pygame
+pygame.init()
 
 
 # Constants and Enums
@@ -34,8 +38,6 @@ ATTACK_HOVER = (100, 60, 60)
 HEALTH_GOOD = (80, 140, 80)
 HEALTH_WARNING = (160, 120, 60)
 HEALTH_DANGER = (160, 70, 70)
-CONTINENT_COLOR = (50, 60, 70)
-OCEAN_COLOR = (30, 40, 50)
 BUTTON_NORMAL = (70, 70, 90)
 BUTTON_HOVER = (90, 90, 110)
 END_TURN_COLOR = (80, 80, 100)
@@ -122,7 +124,6 @@ class City:
 
 class Game:
     def __init__(self):
-        pygame.init()
         self.WIDTH, self.HEIGHT = 1400, 900
         self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
         pygame.display.set_caption("World War Strategy Game")
@@ -131,6 +132,10 @@ class Game:
         self.font = pygame.font.SysFont('Segoe UI', 20)
         self.title_font = pygame.font.SysFont('Segoe UI', 24, bold=True)
         self.small_font = pygame.font.SysFont('Segoe UI', 16)
+
+        # Load background
+        self.background_image = None
+        self.load_background_image("map.jpg")
 
         # Game state
         self.cities = [
@@ -167,32 +172,42 @@ class Game:
         self.end_turn_button = Button(self.WIDTH - 150, self.HEIGHT - 70, 120, 50, "End Turn",
                                       END_TURN_COLOR, END_TURN_HOVER)
 
+    def load_background_image(self, image_name):
+        """Improved background loading with multiple fallbacks"""
+        try:
+            # Try current directory first
+            if os.path.exists(image_name):
+                self.background_image = pygame.image.load(image_name).convert()
+                self.background_image = pygame.transform.scale(self.background_image, (self.WIDTH, self.HEIGHT))
+                print(f"Loaded background: {image_name}")
+                return
+
+            # Try images subdirectory
+            image_path = os.path.join("images", image_name)
+            if os.path.exists(image_path):
+                self.background_image = pygame.image.load(image_path).convert()
+                self.background_image = pygame.transform.scale(self.background_image, (self.WIDTH, self.HEIGHT))
+                print(f"Loaded background from images folder: {image_path}")
+                return
+
+            # If not found, use solid color
+            print(f"Background image not found. Using solid color background.")
+            self.background_image = None
+
+        except Exception as e:
+            print(f"Error loading background: {e}")
+            self.background_image = None
+
+    def draw_background(self):
+        """Draw background image or solid color fallback"""
+        if self.background_image:
+            self.screen.blit(self.background_image, (0, 0))
+        else:
+            self.screen.fill(DARK_BG)
+
     def show_message(self, msg, duration=120):
         self.message = msg
         self.message_timer = duration
-
-    def get_next_active_city_index(self, start_index):
-        """Find the next city that is still alive (health > 0)"""
-        num_cities = len(self.cities)
-        for i in range(1, num_cities + 1):
-            index = (start_index + i) % num_cities
-            if self.cities[index].health > 0:
-                return index
-        return None  # All cities are dead (shouldn't happen as game would end first)
-
-    def draw_map(self):
-        self.screen.fill(OCEAN_COLOR)
-        continents = [
-            [(150, 200), (350, 170), (450, 230), (430, 400), (200, 400)],
-            [(350, 400), (450, 500), (300, 550)],
-            [(550, 200), (750, 170), (850, 230), (750, 330), (550, 280)],
-            [(550, 280), (750, 330), (850, 480), (650, 550), (550, 450)],
-            [(750, 170), (1100, 200), (1000, 350), (850, 400)],
-            [(950, 450), (1050, 470), (1100, 550), (1000, 570)]
-        ]
-        for continent in continents:
-            pygame.draw.polygon(self.screen, CONTINENT_COLOR, continent)
-            pygame.draw.polygon(self.screen, (70, 80, 90), continent, 3)
 
     def draw_cities(self):
         for city in self.cities:
@@ -306,7 +321,7 @@ class Game:
                             self.show_message(f"Built {build_action.name.replace('BUILD_', '').replace('_', ' ')}!")
                         else:
                             self.show_message("Cannot build now!")
-                    return  # Return after handling button click to avoid multiple actions
+                    return  # Return after handling button click
 
             if self.end_turn_button.is_clicked(mouse_pos, mouse_click):
                 self.end_turn()
@@ -339,12 +354,13 @@ class Game:
                             return  # Return after handling attack
 
     def cpu_turn(self):
+        """AI turn logic for enemy cities"""
         current_city = self.cities[self.current_turn % len(self.cities)]
 
         if random.random() < 0.5 and current_city.attacks_remaining > 0:
             targets = [c for c in self.cities if c != current_city and c.health > 0]
             if targets:
-                target = min(targets, key=lambda x: x.health)
+                target = random.choice(targets)
                 attack_type = random.choice([
                     ActionType.AIR_ATTACK,
                     ActionType.LAND_ATTACK,
@@ -381,30 +397,30 @@ class Game:
         current_city.reset_turn()
         self.selected_action = None
 
-        # Find next active city
-        next_index = self.get_next_active_city_index(self.current_turn)
-        if next_index is None:
-            # Shouldn't happen as game should end before all cities are dead
-            self.current_turn += 1
-        else:
-            # Check if we've wrapped around (completed a full cycle)
-            if next_index <= self.current_turn:
-                # Check for game over conditions
-                remaining_players = sum(1 for city in self.cities if city.is_player and city.health > 0)
-                remaining_enemies = sum(1 for city in self.cities if not city.is_player and city.health > 0)
+        # Find next living city
+        original_index = self.current_turn
+        next_index = (self.current_turn + 1) % len(self.cities)
 
-                if remaining_players == 0:
-                    self.show_message("GAME OVER - You lost!", 300)
-                    self.game_phase = GamePhase.GAME_OVER
-                    return
-                elif remaining_enemies == 0:
-                    self.show_message("VICTORY - You won!", 300)
-                    self.game_phase = GamePhase.GAME_OVER
-                    return
+        # Keep looking until we find a living city or complete full cycle
+        while next_index != original_index and self.cities[next_index].health <= 0:
+            next_index = (next_index + 1) % len(self.cities)
 
-            self.current_turn = next_index
+        # If we completed full cycle, check win/lose conditions
+        if next_index == original_index:
+            remaining_players = sum(1 for city in self.cities if city.is_player and city.health > 0)
+            remaining_enemies = sum(1 for city in self.cities if not city.is_player and city.health > 0)
 
-        # Always reset to CHOOSE_ACTION phase at end of turn
+            if remaining_players == 0:
+                self.show_message("GAME OVER - You lost!", 300)
+                self.game_phase = GamePhase.GAME_OVER
+                return
+            elif remaining_enemies == 0:
+                self.show_message("VICTORY - You won!", 300)
+                self.game_phase = GamePhase.GAME_OVER
+                return
+
+        # Update current turn
+        self.current_turn = next_index
         self.game_phase = GamePhase.CHOOSE_ACTION
 
     def run(self):
@@ -426,15 +442,14 @@ class Game:
 
             current_city = self.cities[self.current_turn % len(self.cities)]
 
-            # Only process turns for living cities
-            if current_city.health > 0:
-                if current_city.is_player and self.game_phase != GamePhase.GAME_OVER:
+            if current_city.health > 0 and self.game_phase != GamePhase.GAME_OVER:
+                if current_city.is_player:
                     self.handle_player_turn(mouse_pos, mouse_click)
-                elif self.game_phase != GamePhase.GAME_OVER:
+                else:
                     pygame.time.delay(1000)
                     self.cpu_turn()
 
-            self.draw_map()
+            self.draw_background()
             self.draw_cities()
             self.draw_action_panel()
             self.draw_turn_indicator()

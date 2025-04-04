@@ -1,7 +1,9 @@
 import pygame
 import sys
 import math
+import random
 from enum import Enum
+from pygame import gfxdraw
 
 
 # Constants and Enums
@@ -15,9 +17,9 @@ class ActionType(Enum):
 
 
 class GamePhase(Enum):
-    SELECT_CITY = 1
-    CHOOSE_ACTION = 2
-    CHOOSE_TARGET = 3
+    CHOOSE_ACTION = 1
+    CHOOSE_TARGET = 2
+    ANIMATION = 3
     GAME_OVER = 4
 
 
@@ -41,6 +43,97 @@ BUTTON_NORMAL = (70, 70, 90)
 BUTTON_HOVER = (90, 90, 110)
 END_TURN_COLOR = (80, 80, 100)
 END_TURN_HOVER = (100, 100, 120)
+
+
+class Animation:
+    def __init__(self, start_pos, end_pos, anim_type, duration=60):
+        self.start_pos = start_pos
+        self.current_pos = list(start_pos)
+        self.end_pos = end_pos
+        self.anim_type = anim_type
+        self.duration = duration
+        self.progress = 0
+        self.active = True
+
+        # Calculate movement vector
+        self.dx = (end_pos[0] - start_pos[0]) / duration
+        self.dy = (end_pos[1] - start_pos[1]) / duration
+
+    def update(self):
+        if self.progress < self.duration:
+            self.progress += 1
+            self.current_pos[0] += self.dx
+            self.current_pos[1] += self.dy
+        else:
+            self.active = False
+
+    def draw(self, surface):
+        if not self.active:
+            return
+
+        progress_ratio = self.progress / self.duration
+
+        if self.anim_type == "air":
+            # Missile animation
+            size = max(3, 8 * (1 - progress_ratio))
+            pygame.draw.circle(surface, (200, 200, 200), (int(self.current_pos[0]), int(self.current_pos[1])),
+                               int(size))
+            pygame.draw.circle(surface, (255, 100, 50), (int(self.current_pos[0]), int(self.current_pos[1])),
+                               int(size / 2))
+
+            # Trail
+            if self.progress > 3:
+                prev_pos = (
+                    int(self.current_pos[0] - self.dx * 3),
+                    int(self.current_pos[1] - self.dy * 3)
+                )
+                pygame.draw.line(surface, (255, 150, 100, 150),
+                                 prev_pos,
+                                 (int(self.current_pos[0]), int(self.current_pos[1])), 2)
+
+        elif self.anim_type == "land":
+            # Soldier animation
+            pygame.draw.circle(surface, (150, 150, 150), (int(self.current_pos[0]), int(self.current_pos[1])), 5)
+
+            # Rifle
+            angle = math.atan2(self.dy, self.dx)
+            end_x = self.current_pos[0] + math.cos(angle) * 10
+            end_y = self.current_pos[1] + math.sin(angle) * 10
+            pygame.draw.line(surface, (100, 100, 100),
+                             (int(self.current_pos[0]), int(self.current_pos[1])),
+                             (int(end_x), int(end_y)), 3)
+
+        elif self.anim_type == "sea":
+            # Boat animation
+            angle = math.atan2(self.dy, self.dx)
+
+            # Hull
+            hull_points = [
+                (self.current_pos[0] + math.cos(angle) * 10, self.current_pos[1] + math.sin(angle) * 10),
+                (self.current_pos[0] + math.cos(angle + math.pi / 2) * 5,
+                 self.current_pos[1] + math.sin(angle + math.pi / 2) * 5),
+                (self.current_pos[0] + math.cos(angle - math.pi / 2) * 5,
+                 self.current_pos[1] + math.sin(angle - math.pi / 2) * 5)
+            ]
+            pygame.draw.polygon(surface, (120, 100, 80), hull_points)
+
+            # Mast
+            mast_top = (
+                self.current_pos[0] - math.cos(angle) * 5,
+                self.current_pos[1] - math.sin(angle) * 5
+            )
+            pygame.draw.line(surface, (80, 60, 40),
+                             (int(self.current_pos[0]), int(self.current_pos[1])),
+                             (int(mast_top[0]), int(mast_top[1])), 2)
+
+        elif self.anim_type == "shield":
+            # Shield defense animation
+            alpha = min(255, 255 * (1 - progress_ratio * 2))
+            shield_surface = pygame.Surface((40, 40), pygame.SRCALPHA)
+            pygame.draw.circle(shield_surface, (100, 150, 255, alpha), (20, 20), 15 + 5 * math.sin(progress_ratio * 10))
+            pygame.draw.circle(shield_surface, (200, 220, 255, alpha), (20, 20), 10 + 3 * math.sin(progress_ratio * 10),
+                               2)
+            surface.blit(shield_surface, (int(self.current_pos[0] - 20), int(self.current_pos[1] - 20)))
 
 
 class Button:
@@ -81,6 +174,7 @@ class City:
         self.attacks_remaining = 1
         self.builds_remaining = 1
         self.radius = 18
+        self.shield_anim = None
 
     def perform_action(self, action, target=None):
         if action in [ActionType.BUILD_AIR_DEFENSE, ActionType.BUILD_LAND_DEFENSE, ActionType.BUILD_SEA_DEFENSE]:
@@ -94,6 +188,9 @@ class City:
                 self.land_defense += 10
             elif action == ActionType.BUILD_SEA_DEFENSE:
                 self.sea_defense += 10
+
+            # Create shield animation
+            self.shield_anim = Animation(self.position, self.position, "shield", 30)
             return True
 
         elif action in [ActionType.AIR_ATTACK, ActionType.LAND_ATTACK, ActionType.SEA_ATTACK] and target:
@@ -105,14 +202,19 @@ class City:
 
             if action == ActionType.AIR_ATTACK:
                 damage -= target.air_defense
+                anim_type = "air"
             elif action == ActionType.LAND_ATTACK:
                 damage -= target.land_defense
+                anim_type = "land"
             elif action == ActionType.SEA_ATTACK:
                 damage -= target.sea_defense
+                anim_type = "sea"
 
             damage = max(5, damage)  # Minimum damage
             target.health -= damage
-            return True
+
+            # Create attack animation
+            return Animation(self.position, target.position, anim_type)
 
         return False
 
@@ -143,19 +245,19 @@ class Game:
         ]
 
         self.current_turn = 0
-        self.game_phase = GamePhase.SELECT_CITY
-        self.selected_city = None
+        self.game_phase = GamePhase.CHOOSE_ACTION
         self.selected_action = None
         self.message = ""
         self.message_timer = 0
+        self.animations = []
 
         # UI Elements
         self.action_panel_width = 300
         self.map_width = self.WIDTH - self.action_panel_width
 
-        # Action buttons moved to bottom of panel
+        # Action buttons
         panel_height = self.HEIGHT
-        button_start_y = panel_height - 350  # Start buttons higher up
+        button_start_y = panel_height - 350
 
         self.action_buttons = [
             Button(20, button_start_y + 180, 260, 45, "Air Attack", ATTACK_COLOR, ATTACK_HOVER),
@@ -198,11 +300,6 @@ class Game:
 
             color = PLAYER_COLOR if city.is_player else ENEMY_COLOR
 
-            # Draw selection glow
-            if city == self.selected_city:
-                for r in [city.radius + 10, city.radius + 6]:
-                    pygame.draw.circle(self.screen, SELECTION_COLOR, city.position, r)
-
             # Draw city
             pygame.draw.circle(self.screen, color, city.position, city.radius)
             pygame.draw.circle(self.screen, (60, 60, 70), city.position, city.radius, 2)
@@ -237,6 +334,11 @@ class Game:
             pygame.draw.rect(self.screen, (70, 70, 80), text_bg, 1, border_radius=3)
             self.screen.blit(name_text, name_pos)
 
+            # Draw shield animation if active
+            if city.shield_anim and city.shield_anim.active:
+                city.shield_anim.draw(self.screen)
+                city.shield_anim.update()
+
     def draw_action_panel(self):
         # Panel background
         panel_rect = pygame.Rect(self.map_width, 0, self.action_panel_width, self.HEIGHT)
@@ -250,28 +352,27 @@ class Game:
                          (self.map_width + 20, 70),
                          (self.WIDTH - 20, 70), 2)
 
-        # Draw current city info if selected
-        if self.selected_city:
-            city = self.selected_city
-            city_title = self.font.render(f"{city.name}", True, TEXT_COLOR)
-            self.screen.blit(city_title, (self.map_width + 30, 100))
+        # Draw current city info
+        current_city = self.cities[self.current_turn % len(self.cities)]
+        city_title = self.font.render(f"{current_city.name}", True, TEXT_COLOR)
+        self.screen.blit(city_title, (self.map_width + 30, 100))
 
-            # Health indicator
-            health_text = self.small_font.render(f"Health: {city.health}/100", True, TEXT_COLOR)
-            self.screen.blit(health_text, (self.map_width + 30, 130))
+        # Health indicator
+        health_text = self.small_font.render(f"Health: {current_city.health}/100", True, TEXT_COLOR)
+        self.screen.blit(health_text, (self.map_width + 30, 130))
 
-            # Defense indicators
-            defenses = [
-                f"Air Defense: {city.air_defense}",
-                f"Land Defense: {city.land_defense}",
-                f"Sea Defense: {city.sea_defense}"
-            ]
+        # Defense indicators
+        defenses = [
+            f"Air Defense: {current_city.air_defense}",
+            f"Land Defense: {current_city.land_defense}",
+            f"Sea Defense: {current_city.sea_defense}"
+        ]
 
-            for i, defense in enumerate(defenses):
-                text = self.small_font.render(defense, True, TEXT_COLOR)
-                self.screen.blit(text, (self.map_width + 40, 160 + i * 25))
+        for i, defense in enumerate(defenses):
+            text = self.small_font.render(defense, True, TEXT_COLOR)
+            self.screen.blit(text, (self.map_width + 40, 160 + i * 25))
 
-        # Draw action buttons (now attacks are at bottom)
+        # Draw action buttons
         for button in self.action_buttons:
             button.draw(self.screen, self.font)
 
@@ -315,22 +416,17 @@ class Game:
             pygame.draw.rect(self.screen, (80, 80, 100), msg_rect, 2, border_radius=5)
             self.screen.blit(msg_text, (self.WIDTH // 2 - msg_text.get_width() // 2, self.HEIGHT - 60))
 
+    def draw_animations(self):
+        for anim in self.animations[:]:
+            anim.draw(self.screen)
+            anim.update()
+            if not anim.active:
+                self.animations.remove(anim)
+
     def handle_player_turn(self, mouse_pos, mouse_click):
         current_city = self.cities[self.current_turn % len(self.cities)]
 
-        if self.game_phase == GamePhase.SELECT_CITY:
-            if mouse_click and mouse_pos[0] < self.map_width:
-                for city in self.cities:
-                    if city.is_player and city.health > 0:
-                        distance = math.sqrt((mouse_pos[0] - city.position[0]) ** 2 +
-                                             (mouse_pos[1] - city.position[1]) ** 2)
-                        if distance < city.radius + 5:
-                            self.selected_city = city
-                            self.game_phase = GamePhase.CHOOSE_ACTION
-                            self.show_message(f"Selected {city.name}. Choose an action.")
-                            break
-
-        elif self.game_phase == GamePhase.CHOOSE_ACTION:
+        if self.game_phase == GamePhase.CHOOSE_ACTION:
             # Check action buttons (note reversed order now)
             for i, button in enumerate(self.action_buttons):
                 if button.is_clicked(mouse_pos, mouse_click):
@@ -366,7 +462,10 @@ class Game:
                         distance = math.sqrt((mouse_pos[0] - city.position[0]) ** 2 +
                                              (mouse_pos[1] - city.position[1]) ** 2)
                         if distance < city.radius + 5:
-                            if current_city.perform_action(self.selected_action, city):
+                            anim = current_city.perform_action(self.selected_action, city)
+                            if anim:
+                                self.animations.append(anim)
+                                self.game_phase = GamePhase.ANIMATION
                                 damage = 25  # Base damage
                                 if self.selected_action == ActionType.AIR_ATTACK:
                                     damage -= city.air_defense
@@ -381,8 +480,6 @@ class Game:
                                 )
                             else:
                                 self.show_message("Cannot attack now!")
-
-                            self.game_phase = GamePhase.CHOOSE_ACTION
                             break
 
     def cpu_turn(self):
@@ -400,7 +497,10 @@ class Game:
                     ActionType.LAND_ATTACK,
                     ActionType.SEA_ATTACK
                 ])
-                current_city.perform_action(attack_type, target)
+                anim = current_city.perform_action(attack_type, target)
+                if anim:
+                    self.animations.append(anim)
+                    self.game_phase = GamePhase.ANIMATION
                 self.show_message(
                     f"{current_city.name} launched {attack_type.name.replace('_', ' ')} on {target.name}!")
 
@@ -414,14 +514,14 @@ class Game:
             current_city.perform_action(build_type)
             self.show_message(f"{current_city.name} built {build_type.name.replace('BUILD_', '').replace('_', ' ')}!")
 
-        self.end_turn()
+        if self.game_phase != GamePhase.ANIMATION:
+            self.end_turn()
 
     def end_turn(self):
         self.cities[self.current_turn % len(self.cities)].reset_turn()
-        self.selected_city = None
         self.selected_action = None
         self.current_turn += 1
-        self.game_phase = GamePhase.SELECT_CITY
+        self.game_phase = GamePhase.CHOOSE_ACTION
 
         # Check for winners
         remaining_players = sum(1 for city in self.cities if city.is_player and city.health > 0)
@@ -464,14 +564,18 @@ class Game:
             # Handle turns
             if current_city.health > 0:
                 if current_city.is_player and self.game_phase != GamePhase.GAME_OVER:
-                    self.handle_player_turn(mouse_pos, mouse_click)
-                elif not current_city.is_player and self.game_phase == GamePhase.SELECT_CITY:
+                    if self.game_phase == GamePhase.ANIMATION and not self.animations:
+                        self.game_phase = GamePhase.CHOOSE_ACTION
+                    elif self.game_phase != GamePhase.ANIMATION:
+                        self.handle_player_turn(mouse_pos, mouse_click)
+                elif not current_city.is_player and self.game_phase == GamePhase.CHOOSE_ACTION:
                     pygame.time.delay(1000)  # Pause for player to see CPU turn
                     self.cpu_turn()
 
             # Drawing
             self.draw_map()
             self.draw_cities()
+            self.draw_animations()
             self.draw_action_panel()
             self.draw_turn_indicator()
             self.draw_message()

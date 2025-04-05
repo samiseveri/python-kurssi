@@ -134,8 +134,7 @@ class Game:
         self.small_font = pygame.font.SysFont('Segoe UI', 16)
 
         # Load background
-        self.background_image = None
-        self.load_background_image("map.jpg")
+        self.background = self.load_background()
 
         # Game state
         self.cities = [
@@ -172,57 +171,48 @@ class Game:
         self.end_turn_button = Button(self.WIDTH - 150, self.HEIGHT - 70, 120, 50, "End Turn",
                                       END_TURN_COLOR, END_TURN_HOVER)
 
-    def load_background_image(self, image_name):
-        """Improved background loading with multiple fallbacks"""
+    def load_background(self):
+        """Load background image or create a default one"""
         try:
-            # Try current directory first
-            if os.path.exists(image_name):
-                self.background_image = pygame.image.load(image_name).convert()
-                self.background_image = pygame.transform.scale(self.background_image, (self.WIDTH, self.HEIGHT))
-                print(f"Loaded background: {image_name}")
-                return
+            # Try to load map.png
+            if os.path.exists("map.png"):
+                bg = pygame.image.load("map.png").convert()
+                return pygame.transform.scale(bg, (self.WIDTH, self.HEIGHT))
 
-            # Try images subdirectory
-            image_path = os.path.join("images", image_name)
-            if os.path.exists(image_path):
-                self.background_image = pygame.image.load(image_path).convert()
-                self.background_image = pygame.transform.scale(self.background_image, (self.WIDTH, self.HEIGHT))
-                print(f"Loaded background from images folder: {image_path}")
-                return
+            # If not found, create a simple background
+            bg = pygame.Surface((self.WIDTH, self.HEIGHT))
+            bg.fill((15, 30, 60))  # Dark blue background
 
-            # If not found, use solid color
-            print(f"Background image not found. Using solid color background.")
-            self.background_image = None
+            # Draw simple continents
+            pygame.draw.ellipse(bg, (40, 80, 40), (200, 200, 400, 300))  # America
+            pygame.draw.ellipse(bg, (50, 90, 40), (600, 150, 300, 250))  # Europe
+            pygame.draw.ellipse(bg, (60, 70, 30), (800, 250, 400, 350))  # Asia
 
+            return bg
         except Exception as e:
             print(f"Error loading background: {e}")
-            self.background_image = None
+            bg = pygame.Surface((self.WIDTH, self.HEIGHT))
+            bg.fill(DARK_BG)
+            return bg
 
     def draw_background(self):
-        """Draw background image or solid color fallback"""
-        if self.background_image:
-            self.screen.blit(self.background_image, (0, 0))
-        else:
-            self.screen.fill(DARK_BG)
-
-    def show_message(self, msg, duration=120):
-        self.message = msg
-        self.message_timer = duration
+        """Draw the background"""
+        self.screen.blit(self.background, (0, 0))
 
     def draw_cities(self):
+        """Draw all cities without extra circles"""
         for city in self.cities:
             if city.health <= 0:
                 continue
 
+            # Draw city circle
             color = PLAYER_COLOR if city.is_player else ENEMY_COLOR
             pygame.draw.circle(self.screen, color, city.position, city.radius)
             pygame.draw.circle(self.screen, (60, 60, 70), city.position, city.radius, 2)
 
             # Health bar
-            bar_width = 50
-            health_width = max(0, (city.health / 100) * bar_width)
-            health_rect = pygame.Rect(city.position[0] - 25, city.position[1] - 35, bar_width, 6)
-            pygame.draw.rect(self.screen, (60, 60, 70), health_rect, 1)
+            health_width = max(0, (city.health / 100) * 50)
+            health_rect = pygame.Rect(city.position[0] - 25, city.position[1] - 35, health_width, 6)
 
             if city.health > 60:
                 health_color = HEALTH_GOOD
@@ -231,17 +221,17 @@ class Game:
             else:
                 health_color = HEALTH_DANGER
 
-            pygame.draw.rect(self.screen, health_color,
-                             (city.position[0] - 25, city.position[1] - 35, health_width, 6))
+            pygame.draw.rect(self.screen, health_color, health_rect)
+            pygame.draw.rect(self.screen, (60, 60, 70), (city.position[0] - 25, city.position[1] - 35, 50, 6), 1)
 
             # City name
             name_text = self.small_font.render(city.name, True, TEXT_COLOR)
             name_pos = (city.position[0] - name_text.get_width() // 2, city.position[1] + city.radius + 5)
-            text_bg = pygame.Rect(name_pos[0] - 5, name_pos[1] - 2,
-                                  name_text.get_width() + 10, name_text.get_height() + 4)
-            pygame.draw.rect(self.screen, (50, 50, 60), text_bg, border_radius=3)
-            pygame.draw.rect(self.screen, (70, 70, 80), text_bg, 1, border_radius=3)
             self.screen.blit(name_text, name_pos)
+
+    def show_message(self, msg, duration=120):
+        self.message = msg
+        self.message_timer = duration
 
     def draw_action_panel(self):
         panel_rect = pygame.Rect(self.map_width, 0, self.action_panel_width, self.HEIGHT)
@@ -321,7 +311,7 @@ class Game:
                             self.show_message(f"Built {build_action.name.replace('BUILD_', '').replace('_', ' ')}!")
                         else:
                             self.show_message("Cannot build now!")
-                    return  # Return after handling button click
+                    return
 
             if self.end_turn_button.is_clicked(mouse_pos, mouse_click):
                 self.end_turn()
@@ -351,21 +341,17 @@ class Game:
                                 self.game_phase = GamePhase.CHOOSE_ACTION
                             else:
                                 self.show_message("Cannot attack now!")
-                            return  # Return after handling attack
+                            return
 
     def cpu_turn(self):
-        """AI turn logic for enemy cities"""
+        """AI turn for enemy cities"""
         current_city = self.cities[self.current_turn % len(self.cities)]
 
         if random.random() < 0.5 and current_city.attacks_remaining > 0:
             targets = [c for c in self.cities if c != current_city and c.health > 0]
             if targets:
                 target = random.choice(targets)
-                attack_type = random.choice([
-                    ActionType.AIR_ATTACK,
-                    ActionType.LAND_ATTACK,
-                    ActionType.SEA_ATTACK
-                ])
+                attack_type = random.choice([ActionType.AIR_ATTACK, ActionType.LAND_ATTACK, ActionType.SEA_ATTACK])
                 if current_city.perform_action(attack_type, target):
                     damage = 25
                     if attack_type == ActionType.AIR_ATTACK:
@@ -392,7 +378,6 @@ class Game:
         self.end_turn()
 
     def end_turn(self):
-        # Reset current city's turn
         current_city = self.cities[self.current_turn % len(self.cities)]
         current_city.reset_turn()
         self.selected_action = None
@@ -401,11 +386,10 @@ class Game:
         original_index = self.current_turn
         next_index = (self.current_turn + 1) % len(self.cities)
 
-        # Keep looking until we find a living city or complete full cycle
         while next_index != original_index and self.cities[next_index].health <= 0:
             next_index = (next_index + 1) % len(self.cities)
 
-        # If we completed full cycle, check win/lose conditions
+        # Check win/lose conditions
         if next_index == original_index:
             remaining_players = sum(1 for city in self.cities if city.is_player and city.health > 0)
             remaining_enemies = sum(1 for city in self.cities if not city.is_player and city.health > 0)
@@ -419,7 +403,6 @@ class Game:
                 self.game_phase = GamePhase.GAME_OVER
                 return
 
-        # Update current turn
         self.current_turn = next_index
         self.game_phase = GamePhase.CHOOSE_ACTION
 
@@ -449,6 +432,7 @@ class Game:
                     pygame.time.delay(1000)
                     self.cpu_turn()
 
+            # Draw everything in correct order
             self.draw_background()
             self.draw_cities()
             self.draw_action_panel()

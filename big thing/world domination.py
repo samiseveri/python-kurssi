@@ -124,7 +124,7 @@ class City:
 
 class Game:
     def __init__(self):
-        self.WIDTH, self.HEIGHT = 1400, 900
+        self.WIDTH, self.HEIGHT = 2000, 900
         self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
         pygame.display.set_caption("World War Strategy Game")
 
@@ -138,11 +138,11 @@ class Game:
 
         # Game state
         self.cities = [
-            City("Washington", (250, 320)),
-            City("London", (500, 250)),
-            City("Tokyo", (900, 330), is_player=True),
-            City("Beijing", (800, 310)),
-            City("Moscow", (600, 230)),
+            City("Washington", (580, 430)),
+            City("London", (915, 360)),
+            City("Tokyo", (1600, 450), is_player=True),
+            City("Beijing", (1480, 420)),
+            City("Moscow", (1100, 350)),
         ]
 
         self.current_turn = 0

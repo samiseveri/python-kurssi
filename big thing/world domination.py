@@ -174,7 +174,7 @@ class Game:
     def load_background(self):
         """Load background image or create a default one"""
         try:
-            # Try to load map.png
+
             if os.path.exists("map.png"):
                 bg = pygame.image.load("map.png").convert()
                 return pygame.transform.scale(bg, (self.WIDTH, self.HEIGHT))
